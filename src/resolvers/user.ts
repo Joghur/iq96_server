@@ -40,7 +40,7 @@ export class UserResolver {
 	async allUsers(): Promise<Users> {
 		const userRepository = getConnection().getRepository(User);
 		const users = await userRepository.find({
-			relations: ['address', 'roles'],
+			relations: ['roles'],
 		});
 		console.log('users', users);
 		return { users };
@@ -52,7 +52,7 @@ export class UserResolver {
 		const userRepository = getConnection().getRepository(User);
 		try {
 			user = await userRepository.findOneOrFail(id, {
-				relations: ['address', 'roles'],
+				relations: ['roles'],
 			});
 		} catch (error) {
 			return {

@@ -8,14 +8,10 @@ import { buildSchema } from 'type-graphql';
 // import cors from 'cors';
 import { createConnection } from 'typeorm';
 import path from 'path';
-import { Address, User, Role } from './entities';
-import {
-	HelloResolver,
-	UserResolver,
-	AddressResolver,
-	RoleResolver,
-} from './resolvers';
-import { fillDB } from './utils/fillDB';
+import { User, Role } from './entities';
+import { UserResolver, RoleResolver } from './resolvers';
+import helmet from 'helmet';
+// import { fillDB } from './utils/fillDB';
 // import { cleanDB } from './utils/fillDB';
 
 const main = async () => {
@@ -25,24 +21,22 @@ const main = async () => {
 		logging: !__prod__,
 		synchronize: !__prod__,
 		migrations: [path.join(__dirname, './src/migrations/*')],
-		entities: [User, Role, Address],
+		entities: [User, Role],
 	});
 	// await cleanDB();
 	await conn.runMigrations();
 
 	// filling db with fakedate
-	fillDB();
+	// fillDB();
 
 	const app = express();
 
+	// helps securing Express app
+	app.use(helmet());
+
 	const apolloServer = new ApolloServer({
 		schema: await buildSchema({
-			resolvers: [
-				HelloResolver,
-				UserResolver,
-				AddressResolver,
-				RoleResolver,
-			],
+			resolvers: [UserResolver, RoleResolver],
 			validate: false,
 		}),
 		context: ({ req, res }) => ({

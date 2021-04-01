@@ -41,7 +41,7 @@ export class RoleResolver {
 		const roleRepository = getConnection().getRepository(Role);
 
 		const roles = await roleRepository.find({
-			relations: ['users', 'users.address'],
+			relations: ['users'],
 		});
 
 		console.log('roles', roles);
@@ -56,7 +56,7 @@ export class RoleResolver {
 		try {
 			roleRepository = getConnection().getRepository(Role);
 			role = await roleRepository.findOneOrFail(id, {
-				relations: ['users', 'users.address'],
+				relations: ['users'],
 			});
 		} catch (error) {
 			return {

@@ -6,11 +6,12 @@ import {
 	UpdateDateColumn,
 	Column,
 	BaseEntity,
-	ManyToOne,
 	JoinTable,
 	ManyToMany,
+	BeforeInsert,
 } from 'typeorm';
-import { Address, Role } from '../entities';
+import bcrypt from 'bcrypt';
+import { Role } from '../entities';
 
 @ObjectType()
 @Entity()
@@ -21,31 +22,51 @@ export class User extends BaseEntity {
 
 	@Field(() => String, { nullable: true })
 	@Column()
-	name!: string;
+	firstname!: string;
+
+	@Field(() => String, { nullable: true })
+	@Column()
+	lastname!: string;
 
 	@Field()
 	@Column({ unique: true })
 	username!: string;
 
+	@Field(() => String)
+	@CreateDateColumn()
+	birthday: Date;
+
 	@Field()
 	@Column({ unique: true })
-	email!: string;
+	address!: string;
 
-	// onDelete set to CASCADE so user will be deleted when address is deleted
-	// this is just a testcase
-	@Field(() => Address, { nullable: true })
-	@ManyToOne(() => Address, (address) => address.users, {
-		onDelete: 'CASCADE',
-	})
-	address: Address;
+	@Field()
+	@Column({ unique: true })
+	emails!: string;
+
+	@Field()
+	@Column({ unique: true })
+	phones!: string;
+
+	@Field()
+	@Column({ unique: true })
+	size!: string;
+
+	@Field()
+	@Column({ unique: true })
+	front!: string;
+
+	@Field()
+	@Column({ unique: true })
+	back!: string;
 
 	@Field(() => [Role], { nullable: true })
 	@ManyToMany(() => Role, (role) => role.users)
 	@JoinTable()
 	roles: Role[];
 
-	// @Column({ type: 'varchar', length: 100, nullable: false })
-	// password!: string;
+	@Column({ type: 'varchar', length: 100, nullable: false })
+	password!: string;
 
 	@Field(() => String)
 	@CreateDateColumn()
@@ -55,9 +76,9 @@ export class User extends BaseEntity {
 	@UpdateDateColumn()
 	updatedAt: Date;
 
-	// @BeforeInsert()
-	// async setPassword(password: string) {
-	// 	const salt = await bcrypt.genSalt();
-	// 	this.password = await bcrypt.hash(password || this.password, salt);
-	// }
+	@BeforeInsert()
+	async setPassword(password: string) {
+		const salt = await bcrypt.genSalt();
+		this.password = await bcrypt.hash(password || this.password, salt);
+	}
 }

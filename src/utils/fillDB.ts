@@ -1,11 +1,10 @@
-import { User, Address, Role } from '../entities';
+import { User, Role } from '../entities';
 import { getConnection } from 'typeorm';
 import { fakeUsers } from './fakeData/fakeUsers';
-import { fakeAddresses } from './fakeData/fakeAddresses';
 import { fakeRoles } from './fakeData/fakeRoles';
 import faker from 'faker';
 
-const entities = [User, Address, Role];
+const entities = [User, Role];
 faker.seed(123);
 
 export const fillDB = async () => {
@@ -15,13 +14,6 @@ export const fillDB = async () => {
 		.insert()
 		.into(Role)
 		.values(fakeRoles)
-		.execute();
-
-	await getConnection()
-		.createQueryBuilder()
-		.insert()
-		.into(Address)
-		.values(fakeAddresses)
 		.execute();
 
 	await getConnection()

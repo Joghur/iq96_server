@@ -4,3 +4,5 @@ node_modules
 ormconfig.json
 
 dist/
+
+src/utils/data/
