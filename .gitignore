@@ -6,3 +6,5 @@ ormconfig.json
 dist/
 
 src/utils/data/
+
+*.pdf

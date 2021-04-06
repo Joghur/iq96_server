@@ -10,7 +10,7 @@ import {
 } from 'type-graphql';
 import { getConnection } from 'typeorm';
 import { User } from '../entities';
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');
 
 @ObjectType()
 class UserFieldError {
@@ -47,23 +47,23 @@ export class UserResolver {
 		return { users };
 	}
 
-	@Query(() => String, { nullable: true })
-	async pdf(): Promise<string> {
-		console.log('UserResolver - pdf');
-		// launch and create a new page
-		const browser = await puppeteer.launch();
-		const page = await browser.newPage(); // go to page in resumeonly mode, wait for any network events to settle
-		await page.goto('http://localhost:3000/?pdfonly=true&rowspage=6', {
-			waitUntil: 'networkidle2',
-		}); // output to a local file
-		await page.pdf({
-			path: 'pdfonly.pdf',
-			format: 'Letter',
-			printBackground: true,
-		}); // close
-		await browser.close();
-		return 'ok';
-	}
+	// @Query(() => Buffer, { nullable: true })
+	// async pdf(): Promise<Buffer> {
+	// 	console.log('UserResolver - pdf');
+	// 	// launch and create a new page
+	// 	const browser = await puppeteer.launch();
+	// 	const page = await browser.newPage(); // go to page in resumeonly mode, wait for any network events to settle
+	// 	await page.goto('http://localhost:3000/?pdfonly=true&rowspage=6', {
+	// 		waitUntil: 'networkidle2',
+	// 	}); // output to a local file
+	// 	const buffer = await page.pdf({
+	// 		format: 'Letter',
+	// 		printBackground: true,
+	// 	}); // close
+	// 	await browser.close();
+	// 	console.log('buffer-----------', buffer);
+	// 	return buffer;
+	// }
 
 	@Query(() => UserResponse, { nullable: true })
 	async user(@Arg('id', () => Int) id: number): Promise<UserResponse> {
