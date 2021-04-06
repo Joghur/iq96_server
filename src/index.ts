@@ -5,12 +5,13 @@ import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 // import session from 'express-session';
-// import cors from 'cors';
+import cors from 'cors';
 import { createConnection } from 'typeorm';
 import path from 'path';
 import { User, Role } from './entities';
 import { UserResolver, RoleResolver } from './resolvers';
-import helmet from 'helmet';
+import { corsOptions } from './config/corsConfig';
+// import helmet from 'helmet';
 // import { fillDB } from './utils/fillDB';
 // import { cleanDB } from './utils/fillDB';
 
@@ -31,8 +32,8 @@ const main = async () => {
 
 	const app = express();
 
-	// helps securing Express app
-	app.use(helmet());
+	// app.use(helmet());
+	app.use(cors(corsOptions));
 
 	const apolloServer = new ApolloServer({
 		schema: await buildSchema({
@@ -57,5 +58,5 @@ const main = async () => {
 };
 
 main().catch((err) => {
-	console.error(err);
+	console.error('-----------error', err);
 });

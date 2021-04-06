@@ -1,7 +1,9 @@
 import { User, Role } from '../entities';
 import { getConnection } from 'typeorm';
-import { fakeUsers } from './fakeData/fakeUsers';
-import { fakeRoles } from './fakeData/fakeRoles';
+// import { fakeUsers } from './fakeData/fakeUsers';
+// import { fakeRoles } from './fakeData/fakeRoles';
+import { roles } from './data/roles';
+import { users } from './data/users';
 import faker from 'faker';
 
 const entities = [User, Role];
@@ -13,14 +15,14 @@ export const fillDB = async () => {
 		.createQueryBuilder()
 		.insert()
 		.into(Role)
-		.values(fakeRoles)
+		.values(roles)
 		.execute();
 
 	await getConnection()
 		.createQueryBuilder()
 		.insert()
 		.into(User)
-		.values(fakeUsers)
+		.values(users)
 		.execute();
 	// const role1 = new Role();
 	// const role2 = new Role();

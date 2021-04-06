@@ -20,45 +20,53 @@ export class User extends BaseEntity {
 	@PrimaryGeneratedColumn()
 	id!: number;
 
-	@Field(() => String, { nullable: true })
+	@Field()
 	@Column()
-	firstname!: string;
+	active!: boolean;
 
-	@Field(() => String, { nullable: true })
+	@Field()
 	@Column()
-	lastname!: string;
+	name!: string;
 
 	@Field()
 	@Column({ unique: true })
 	username!: string;
 
-	@Field(() => String)
+	@Field(() => String, { nullable: true })
 	@CreateDateColumn()
 	birthday: Date;
 
 	@Field()
-	@Column({ unique: true })
+	@Column()
 	address!: string;
 
-	@Field()
-	@Column({ unique: true })
-	emails!: string;
+	@Field(() => String, { nullable: true })
+	@Column()
+	email!: string;
 
-	@Field()
-	@Column({ unique: true })
-	phones!: string;
+	@Field(() => String, { nullable: true })
+	@Column()
+	phone!: string;
 
-	@Field()
-	@Column({ unique: true })
+	@Field(() => String, { nullable: true })
+	@Column()
+	mobile!: string;
+
+	@Field(() => String, { nullable: true })
+	@Column()
+	work!: string;
+
+	@Field(() => String, { nullable: true })
+	@Column()
+	workemail!: string;
+
+	@Field(() => String, { nullable: true })
+	@Column()
+	workphone!: string;
+
+	@Field(() => String, { nullable: true })
+	@Column()
 	size!: string;
-
-	@Field()
-	@Column({ unique: true })
-	front!: string;
-
-	@Field()
-	@Column({ unique: true })
-	back!: string;
 
 	@Field(() => [Role], { nullable: true })
 	@ManyToMany(() => Role, (role) => role.users)
@@ -78,7 +86,13 @@ export class User extends BaseEntity {
 
 	@BeforeInsert()
 	async setPassword(password: string) {
+		console.log('/////////////-----------password', password);
+		console.log('/////////////-----------this.password', this.password);
 		const salt = await bcrypt.genSalt();
 		this.password = await bcrypt.hash(password || this.password, salt);
+		console.log(
+			'/////////////-----------this.password efter',
+			this.password,
+		);
 	}
 }

@@ -29,7 +29,6 @@
 	},
 	"exclude": [
 		"node_modules",
-		"old_src",
 		"src/migrations"
 	],
 	"include": [
