@@ -47,24 +47,6 @@ export class UserResolver {
 		return { users };
 	}
 
-	// @Query(() => Buffer, { nullable: true })
-	// async pdf(): Promise<Buffer> {
-	// 	console.log('UserResolver - pdf');
-	// 	// launch and create a new page
-	// 	const browser = await puppeteer.launch();
-	// 	const page = await browser.newPage(); // go to page in resumeonly mode, wait for any network events to settle
-	// 	await page.goto('http://localhost:3000/?pdfonly=true&rowspage=6', {
-	// 		waitUntil: 'networkidle2',
-	// 	}); // output to a local file
-	// 	const buffer = await page.pdf({
-	// 		format: 'Letter',
-	// 		printBackground: true,
-	// 	}); // close
-	// 	await browser.close();
-	// 	console.log('buffer-----------', buffer);
-	// 	return buffer;
-	// }
-
 	@Query(() => UserResponse, { nullable: true })
 	async user(@Arg('id', () => Int) id: number): Promise<UserResponse> {
 		console.log('UserResolver - user');
@@ -105,4 +87,82 @@ export class UserResolver {
 		// user still exists
 		return false;
 	}
+
+	@Mutation(() => User)
+	async updateUser(
+		@Arg('id', () => Int) id: number,
+		@Arg('active') active: boolean,
+		@Arg('name') name: string,
+		@Arg('username') username: string,
+		@Arg('birthday') birthday: string,
+		@Arg('address') address: string,
+		@Arg('email') email: string,
+		@Arg('phone') phone: string,
+		@Arg('mobile') mobile: string,
+		@Arg('work') work: string,
+		@Arg('workemail') workemail: string,
+		@Arg('workphone') workphone: string,
+		@Arg('size') size: string,
+		@Ctx() {},
+	): Promise<User | null> {
+		const result = await getConnection()
+			.createQueryBuilder()
+			.update(User)
+			.set({
+				active,
+				name,
+				username,
+				birthday,
+				address,
+				email,
+				phone,
+				mobile,
+				work,
+				workemail,
+				workphone,
+				size,
+			})
+			.where('id = :id ', {
+				id,
+			})
+			.returning('*')
+			.execute();
+
+		console.log('result ----------', result);
+		return result.raw[0];
+	}
+
+	// @Mutation(() => Post)
+	// @UseMiddleware(isAuth)
+	// async createPost(
+	//   @Arg("input") input: PostInput,
+	//   @Ctx() { req }: MyContext
+	// ): Promise<Post> {
+	//   return Post.create({
+	// 	...input,
+	// 	creatorId: req.session.userId,
+	//   }).save();
+	// }
+
+	// @Mutation(() => Post, { nullable: true })
+	// @UseMiddleware(isAuth)
+	// async updatePost(
+	//   @Arg("id", () => Int) id: number,
+	//   @Arg("title") title: string,
+	//   @Arg("text") text: string,
+	//   @Ctx() { req }: MyContext
+	// ): Promise<Post | null> {
+	//   const result = await getConnection()
+	// 	.createQueryBuilder()
+	// 	.update(Post)
+	// 	.set({ title, text })
+	// 	.where('id = :id and "creatorId" = :creatorId', {
+	// 	  id,
+	// 	  creatorId: req.session.userId,
+	// 	})
+	// 	.returning("*")
+	// 	.execute();
+
+	//   return result.raw[0];
+	// }
 }

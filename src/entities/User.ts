@@ -46,27 +46,27 @@ export class User extends BaseEntity {
 
 	@Field(() => String, { nullable: true })
 	@Column()
-	phone!: string;
+	phone: string;
 
 	@Field(() => String, { nullable: true })
 	@Column()
-	mobile!: string;
+	mobile: string;
 
 	@Field(() => String, { nullable: true })
 	@Column()
-	work!: string;
+	work: string;
 
 	@Field(() => String, { nullable: true })
 	@Column()
-	workemail!: string;
+	workemail: string;
 
 	@Field(() => String, { nullable: true })
 	@Column()
-	workphone!: string;
+	workphone: string;
 
 	@Field(() => String, { nullable: true })
 	@Column()
-	size!: string;
+	size: string;
 
 	@Field(() => [Role], { nullable: true })
 	@ManyToMany(() => Role, (role) => role.users)
