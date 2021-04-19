@@ -9,7 +9,7 @@ import {
 	Mutation,
 } from 'type-graphql';
 import { getConnection } from 'typeorm';
-import { User } from '../entities';
+import { User, Role } from '../entities';
 // const puppeteer = require('puppeteer');
 
 @ObjectType()
@@ -89,6 +89,58 @@ export class UserResolver {
 	}
 
 	@Mutation(() => User)
+	async createUser(
+		@Arg('active') active: boolean,
+		@Arg('name') name: string,
+		@Arg('username') username: string,
+		@Arg('birthday') birthday: string,
+		@Arg('address') address: string,
+		@Arg('email') email: string,
+		@Arg('phone') phone: string,
+		@Arg('mobile') mobile: string,
+		@Arg('work') work: string,
+		@Arg('workemail') workemail: string,
+		@Arg('workphone') workphone: string,
+		@Arg('size') size: string,
+		@Arg('roles', () => [Int]) roles: [number],
+		@Arg('password') password: string,
+		@Ctx() {},
+	): Promise<User> {
+		const user: any = {};
+
+		// todo encrypt password
+		// updating normal fields
+		user.active = active;
+		user.name = name;
+		user.username = username;
+		user.birthday = birthday;
+		user.address = address;
+		user.email = email;
+		user.phone = phone;
+		user.mobile = mobile;
+		user.work = work;
+		user.workemail = workemail;
+		user.workphone = workphone;
+		user.size = size;
+		user.password = password;
+
+		// many-to-many relations
+		let _roles: (Role | undefined)[] = [];
+		roles.map(async (id: number) => {
+			const role = await getConnection()
+				.getRepository(Role)
+				.findOne({ id });
+			_roles.push(role);
+			user.roles = _roles;
+		});
+
+		const madeUser = await getConnection().getRepository(User).save(user);
+		console.log('madeUser', madeUser);
+
+		return madeUser;
+	}
+
+	@Mutation(() => User)
 	async updateUser(
 		@Arg('id', () => Int) id: number,
 		@Arg('active') active: boolean,
@@ -103,33 +155,55 @@ export class UserResolver {
 		@Arg('workemail') workemail: string,
 		@Arg('workphone') workphone: string,
 		@Arg('size') size: string,
+		@Arg('roles', () => [Int]) roles: [number],
 		@Ctx() {},
-	): Promise<User | null> {
-		const result = await getConnection()
-			.createQueryBuilder()
-			.update(User)
-			.set({
-				active,
-				name,
-				username,
-				birthday,
-				address,
-				email,
-				phone,
-				mobile,
-				work,
-				workemail,
-				workphone,
-				size,
-			})
-			.where('id = :id ', {
-				id,
-			})
-			.returning('*')
-			.execute();
+	): Promise<User> {
+		const user: any = await getConnection()
+			.getRepository(User)
+			.findOne(
+				{ id },
+				{
+					relations: ['roles'],
+				},
+			);
 
-		console.log('result ----------', result);
-		return result.raw[0];
+		// updating normal fields
+		user.active = active;
+		user.name = name;
+		user.username = username;
+		user.birthday = birthday;
+		user.address = address;
+		user.email = email;
+		user.phone = phone;
+		user.mobile = mobile;
+		user.work = work;
+		user.workemail = workemail;
+		user.workphone = workphone;
+		user.size = size;
+
+		console.log('roles----------------------', roles);
+		// updating many-to-many relations
+		let _roles: (Role | undefined)[] = [];
+		roles.map(async (id: number) => {
+			const role = await getConnection()
+				.getRepository(Role)
+				.findOne({ id });
+			_roles.push(role);
+			user.roles = _roles;
+		});
+
+		await getConnection().getRepository(User).save(user);
+
+		const updated: any = await getConnection()
+			.getRepository(User)
+			.findOne(
+				{ id },
+				{
+					relations: ['roles'],
+				},
+			);
+		console.log('updated', updated);
+		return updated;
 	}
 
 	// @Mutation(() => Post)
