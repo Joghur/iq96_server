@@ -44,7 +44,7 @@ export class RoleResolver {
 			relations: ['users'],
 		});
 
-		console.log('roles', roles);
+		// console.log('roles', roles);
 
 		return { roles };
 	}

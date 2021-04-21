@@ -37,8 +37,8 @@ const main = async () => {
 	// app.use(helmet());
 	app.use(cors(corsOptionsDelegate));
 
-	app.get('/pdf', async function (req, res) {
-		console.log('UserResolver - pdf');
+	app.get('/IQlist.pdf', async function (req, res) {
+		console.log('UserResolver - IQlist.pdf');
 		// launch and create a new page
 		const browser = await puppeteer.launch();
 		const page = await browser.newPage(); // go to page in resumeonly mode, wait for any network events to settle
@@ -64,6 +64,7 @@ const main = async () => {
 			validate: false,
 		}),
 		context: ({ req, res }) => ({
+			firebaseToken: req.headers.authorization,
 			req,
 			res,
 		}),
