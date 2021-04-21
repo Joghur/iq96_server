@@ -10,29 +10,7 @@ import {
 } from 'type-graphql';
 import { getConnection } from 'typeorm';
 import { User, Role } from '../entities';
-import firebaseAdmin from 'firebase-admin';
-// const puppeteer = require('puppeteer');
-
-var serviceAccount = require('../../serviceAccountKey.json');
-
-firebaseAdmin.initializeApp({
-	credential: firebaseAdmin.credential.cert(serviceAccount),
-});
-
-const validateAuthorization = async (token: string): Promise<any> => {
-	return firebaseAdmin
-		.auth()
-		.verifyIdToken(token)
-		.then((decodedToken) => {
-			const uid = decodedToken.uid;
-			console.log('uid', uid);
-			return { uid };
-		})
-		.catch((error) => {
-			console.log('error', error);
-			return { error };
-		});
-};
+import { uuidToken } from '../index';
 
 @ObjectType()
 class UserFieldError {
@@ -60,26 +38,29 @@ class Users {
 @Resolver(Users)
 export class UserResolver {
 	@Query(() => Users, { nullable: true })
-	async allUsers(): Promise<Users> {
-		console.log('UserResolver - allUsers');
-		const userRepository = getConnection().getRepository(User);
-		const users = await userRepository.find({
-			relations: ['roles'],
-		});
-		return { users };
+	async allUsers(@Ctx() { valid, pdf }: any): Promise<any> {
+		console.log('UserResolver (1)- allUsers');
+
+		// using onetime token server can read url and get userlist for making PDF file
+		if (valid.validated || pdf === uuidToken.get()) {
+			uuidToken.clear(); // token is cleared after use, so it can't be used again
+			const userRepository = getConnection().getRepository(User);
+			const users = await userRepository.find({
+				relations: ['roles'],
+			});
+			return { users };
+		}
 	}
 
 	@Query(() => UserResponse, { nullable: true })
 	async user(
 		@Arg('id', () => Int) id: number,
-		@Ctx() { firebaseToken }: any,
+		@Ctx() { valid }: any,
 	): Promise<UserResponse> {
 		console.log('UserResolver - user');
 
-		const valid = await validateAuthorization(firebaseToken);
-
 		// if valid token is passed along
-		if (valid.uid) {
+		if (valid.validated) {
 			let user;
 			const userRepository = getConnection().getRepository(User);
 			try {
@@ -115,13 +96,12 @@ export class UserResolver {
 	@Mutation(() => Boolean)
 	async deleteUser(
 		@Arg('id', () => Int) id: number,
-		@Ctx() { firebaseToken }: any,
+		@Ctx() { valid }: any,
 	): Promise<boolean> {
 		console.log('UserResolver - deleteUser');
-		const valid = await validateAuthorization(firebaseToken);
 
 		// if valid token is passed along
-		if (valid.uid) {
+		if (valid.validated) {
 			await User.delete({ id });
 			try {
 				await User.findOneOrFail({ id });
@@ -150,12 +130,10 @@ export class UserResolver {
 		@Arg('size') size: string,
 		@Arg('roles', () => [Int]) roles: [number],
 		@Arg('password') password: string,
-		@Ctx() { firebaseToken }: any,
+		@Ctx() { valid }: any,
 	): Promise<UserResponse> {
-		const valid = await validateAuthorization(firebaseToken);
-
 		// if valid token is passed along
-		if (valid.uid) {
+		if (valid.validated) {
 			const user: any = {};
 
 			// todo encrypt password
@@ -218,12 +196,10 @@ export class UserResolver {
 		@Arg('workphone') workphone: string,
 		@Arg('size') size: string,
 		@Arg('roles', () => [Int]) roles: [number],
-		@Ctx() { firebaseToken }: any,
+		@Ctx() { valid }: any,
 	): Promise<UserResponse> {
-		const valid = await validateAuthorization(firebaseToken);
-
 		// if valid token is passed along
-		if (valid.uid) {
+		if (valid.validated) {
 			const user: any = await getConnection()
 				.getRepository(User)
 				.findOne(

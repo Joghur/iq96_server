@@ -15,7 +15,37 @@ import { corsOptionsDelegate } from './config/corsConfig';
 // import helmet from 'helmet';
 // import { fillDB } from './utils/fillDB';
 // import { cleanDB } from './utils/fillDB';
+import firebaseAdmin from 'firebase-admin';
+import { v4 as uuid_v4 } from 'uuid';
 const puppeteer = require('puppeteer');
+const serviceAccount = require('../serviceAccountKey.json');
+
+let _token = uuid_v4();
+
+// handling token state used for onetime pdf access
+export const uuidToken = {
+	get: () => _token,
+	clear: () => (_token = ''),
+};
+
+firebaseAdmin.initializeApp({
+	credential: firebaseAdmin.credential.cert(serviceAccount),
+});
+
+const validateAuthorization = async (token: string): Promise<any> => {
+	return firebaseAdmin
+		.auth()
+		.verifyIdToken(token)
+		.then((decodedToken) => {
+			const uid = decodedToken.uid;
+			console.log('uid', uid);
+			return { uid, validated: true };
+		})
+		.catch((error) => {
+			console.log('error', error);
+			return { error, validated: false };
+		});
+};
 
 const main = async () => {
 	const conn = await createConnection({
@@ -37,25 +67,28 @@ const main = async () => {
 	// app.use(helmet());
 	app.use(cors(corsOptionsDelegate));
 
-	app.get('/IQlist.pdf', async function (req, res) {
-		console.log('UserResolver - IQlist.pdf');
-		// launch and create a new page
-		const browser = await puppeteer.launch();
-		const page = await browser.newPage(); // go to page in resumeonly mode, wait for any network events to settle
-		await page.goto(
-			'http://localhost:3000/users?pdfonly=true&rowspage=25',
-			{
+	app.get('/pdf', async function (req: any, res: any) {
+		console.log('pdf 55 - pdf');
+		const valid = await validateAuthorization(req.headers.authorization);
+		console.log('valid 56', valid);
+		console.log('pdf 57 - _token', _token);
+
+		if (valid.validated) {
+			// launch and create a new page
+			const browser = await puppeteer.launch();
+			const page = await browser.newPage(); // go to page in resume only mode, wait for any network events to settle
+			const url = `http://localhost:3000/users?pdfonly=true&rowspage=25&pdftoken=${_token}`;
+			console.log('url', url);
+			await page.goto(url, {
 				waitUntil: 'networkidle2',
-			},
-		); // output to a local file
-		const buffer = await page.pdf({
-			format: 'Letter',
-			printBackground: true,
-		}); // close
-		await browser.close();
-		console.log('buffer-----------', buffer);
-		// return buffer;
-		res.send(buffer);
+			});
+			const buffer = await page.pdf({
+				format: 'Letter',
+				printBackground: true,
+			});
+			await browser.close(); // close
+			res.send(buffer);
+		}
 	});
 
 	const apolloServer = new ApolloServer({
@@ -63,11 +96,16 @@ const main = async () => {
 			resolvers: [UserResolver, RoleResolver],
 			validate: false,
 		}),
-		context: ({ req, res }) => ({
-			firebaseToken: req.headers.authorization,
-			req,
-			res,
-		}),
+		context: async ({ req, res }) => {
+			let _token: any = '';
+			if (req) _token = req.headers.authorization;
+			return {
+				valid: await validateAuthorization(_token),
+				pdf: req.headers.pdf,
+				req,
+				res,
+			};
+		},
 	});
 
 	apolloServer.applyMiddleware({
