@@ -10,12 +10,16 @@ Server for iq96-client
 	DATABASE_URL_PRODUCTION=
 	CORS_ORIGIN=
 
-**/src/config/whiteList.js:**
+**/src/config/devPages.js:**
 
-	export const whitelist = [
-		"<webpages>",
-		process.env.CORS_ORIGIN,
-	];
+	const devPages: any[] = [];
+	devPages.push([
+		'http://localhost:3000',
+		'http://localhost:4000',
+		undefined,
+		<other pages>,
+	]);
+	export default devPages;
 
 **serviceAccountKey.json:** from firebase account
 

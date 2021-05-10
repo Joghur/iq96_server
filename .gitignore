@@ -8,3 +8,5 @@ src/utils/data/
 serviceAccountKey.json
 
 src/config/devPages.js
+
+src/config/devPages.ts
