@@ -10,7 +10,6 @@ import {
 } from 'type-graphql';
 import { getConnection } from 'typeorm';
 import { User, Role } from '../entities';
-import { uuidToken } from '../index';
 import crypto from 'crypto';
 
 @ObjectType()
@@ -42,7 +41,6 @@ export class UserResolver {
 	async allUsers(@Ctx() { valid }: any): Promise<any> {
 		// using onetime token server can read url and get userlist for making PDF file
 		if (valid?.validated) {
-			uuidToken.refresh(); // token is renewed after use, so it can't be used again
 			const userRepository = getConnection().getRepository(User);
 			const users = await userRepository.find({
 				relations: ['roles'],

@@ -1,12 +1,8 @@
 node_modules
 .env
-.env.example
-ormconfig.json
 
 dist/
 
 src/utils/data/
-
-*.pdf
 
 serviceAccountKey.json

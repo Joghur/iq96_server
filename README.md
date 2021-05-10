@@ -1,4 +1,36 @@
-iq96_server
+# iq96_server
+
+Server for iq96-client
+
+#### needed config files
+
+  **.env:**
+
+	DATABASE_URL_DEVELOPMENT=
+	DATABASE_URL_PRODUCTION=
+	CORS_ORIGIN=
+
+**/src/config/whiteList.js:**
+
+	export const whitelist = [
+		"<webpages>",
+		process.env.CORS_ORIGIN,
+	];
+
+**serviceAccountKey.json:** from firebase account
+
+	{
+	"type": "service_account",
+	"project_id": "<project_id>",
+	"private_key_id": "<private_key_id>",
+	"private_key": "-----BEGIN PRIVATE KEY-----<key>-----END PRIVATE KEY-----\n",
+	"client_email": "<client_email>",
+	"client_id": "<client_id>",
+	"auth_uri": "https://accounts.google.com/o/oauth2/auth",
+	"token_uri": "https://oauth2.googleapis.com/token",
+  	"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+	"client_x509_cert_url": "<client_x509_cert_url>"
+	}
 
 
 TODO:
