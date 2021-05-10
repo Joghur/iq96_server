@@ -6,3 +6,5 @@ dist/
 src/utils/data/
 
 serviceAccountKey.json
+
+src/config/devPages.js
