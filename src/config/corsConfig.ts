@@ -2,13 +2,14 @@
 const whitelist = [
 	'http://localhost:3000',
 	'http://localhost:4000',
-	// undefined,
+	'http://sandersolutions.dk:4000',
+	'https://sandersolutions.dk',
+	'https://iq96.dk',
+	undefined,
 	process.env.CORS_ORIGIN,
 ];
 export const corsOptions = {
 	origin: function (origin: any, callback: any) {
-		console.log('origin-----', origin);
-		console.log('callback-----', callback);
 		if (whitelist.indexOf(origin) !== -1) {
 			callback(null, true);
 		} else {
@@ -18,7 +19,7 @@ export const corsOptions = {
 };
 
 export const corsOptionsDelegate = function (req: any, callback: any) {
-	var corsOptions;
+	let corsOptions;
 	if (whitelist.indexOf(req.header('Origin')) !== -1) {
 		corsOptions = { origin: true }; // reflect (enable) the requested origin in the CORS response
 	} else {

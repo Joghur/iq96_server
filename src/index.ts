@@ -16,46 +16,45 @@ import { corsOptionsDelegate } from './config/corsConfig';
 // import { fillDB } from './utils/fillDB';
 // import { cleanDB } from './utils/fillDB';
 import firebaseAdmin from 'firebase-admin';
-import { v4 as uuid_v4 } from 'uuid';
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');
 const serviceAccount = require('../serviceAccountKey.json');
-
-let _token = uuid_v4();
-
-// handling token state used for onetime pdf access
-export const uuidToken = {
-	get: () => _token,
-	clear: () => (_token = ''),
-};
 
 firebaseAdmin.initializeApp({
 	credential: firebaseAdmin.credential.cert(serviceAccount),
 });
 
 const validateAuthorization = async (token: string): Promise<any> => {
+	if (!token) return { error: 'token error', validated: false };
 	return firebaseAdmin
 		.auth()
 		.verifyIdToken(token)
 		.then((decodedToken) => {
 			const uid = decodedToken.uid;
-			console.log('uid', uid);
 			return { uid, validated: true };
 		})
 		.catch((error) => {
-			console.log('error', error);
 			return { error, validated: false };
 		});
 };
 
 const main = async () => {
+	const _type = __prod__ ? 'mysql' : 'postgres';
+	const _url = __prod__
+		? process.env.DATABASE_URL_PRODUCTION
+		: process.env.DATABASE_URL_DEVELOPMENT;
+
+	console.log('_type', _type);
+	console.log('_url', _url);
+
 	const conn = await createConnection({
-		type: 'postgres',
-		url: process.env.DATABASE_URL,
+		type: _type,
+		url: _url,
 		logging: !__prod__,
-		synchronize: !__prod__,
+		synchronize: true, // not using __prod__ here. Change to false when not developing.
 		migrations: [path.join(__dirname, './src/migrations/*')],
 		entities: [User, Role],
 	});
+
 	// await cleanDB();
 	await conn.runMigrations();
 
@@ -66,30 +65,6 @@ const main = async () => {
 
 	// app.use(helmet());
 	app.use(cors(corsOptionsDelegate));
-
-	app.get('/pdf', async function (req: any, res: any) {
-		console.log('pdf 55 - pdf');
-		const valid = await validateAuthorization(req.headers.authorization);
-		console.log('valid 56', valid);
-		console.log('pdf 57 - _token', _token);
-
-		if (valid.validated) {
-			// launch and create a new page
-			const browser = await puppeteer.launch();
-			const page = await browser.newPage(); // go to page in resume only mode, wait for any network events to settle
-			const url = `http://localhost:3000/users?pdfonly=true&rowspage=25&pdftoken=${_token}`;
-			console.log('url', url);
-			await page.goto(url, {
-				waitUntil: 'networkidle2',
-			});
-			const buffer = await page.pdf({
-				format: 'Letter',
-				printBackground: true,
-			});
-			await browser.close(); // close
-			res.send(buffer);
-		}
-	});
 
 	const apolloServer = new ApolloServer({
 		schema: await buildSchema({

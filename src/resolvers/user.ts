@@ -11,6 +11,7 @@ import {
 import { getConnection } from 'typeorm';
 import { User, Role } from '../entities';
 import { uuidToken } from '../index';
+import crypto from 'crypto';
 
 @ObjectType()
 class UserFieldError {
@@ -38,12 +39,10 @@ class Users {
 @Resolver(Users)
 export class UserResolver {
 	@Query(() => Users, { nullable: true })
-	async allUsers(@Ctx() { valid, pdf }: any): Promise<any> {
-		console.log('UserResolver (1)- allUsers');
-
+	async allUsers(@Ctx() { valid }: any): Promise<any> {
 		// using onetime token server can read url and get userlist for making PDF file
-		if (valid.validated || pdf === uuidToken.get()) {
-			uuidToken.clear(); // token is cleared after use, so it can't be used again
+		if (valid?.validated) {
+			uuidToken.refresh(); // token is renewed after use, so it can't be used again
 			const userRepository = getConnection().getRepository(User);
 			const users = await userRepository.find({
 				relations: ['roles'],
@@ -57,10 +56,8 @@ export class UserResolver {
 		@Arg('id', () => Int) id: number,
 		@Ctx() { valid }: any,
 	): Promise<UserResponse> {
-		console.log('UserResolver - user');
-
 		// if valid token is passed along
-		if (valid.validated) {
+		if (valid?.validated) {
 			let user;
 			const userRepository = getConnection().getRepository(User);
 			try {
@@ -98,10 +95,8 @@ export class UserResolver {
 		@Arg('id', () => Int) id: number,
 		@Ctx() { valid }: any,
 	): Promise<boolean> {
-		console.log('UserResolver - deleteUser');
-
 		// if valid token is passed along
-		if (valid.validated) {
+		if (valid?.validated) {
 			await User.delete({ id });
 			try {
 				await User.findOneOrFail({ id });
@@ -133,7 +128,13 @@ export class UserResolver {
 		@Ctx() { valid }: any,
 	): Promise<UserResponse> {
 		// if valid token is passed along
-		if (valid.validated) {
+		if (valid?.validated) {
+			// encrypting password
+			const newSalt = crypto.randomBytes(64).toString('hex');
+			const newPassword = crypto
+				.pbkdf2Sync(password, newSalt, 10000, 64, 'sha512')
+				.toString('base64');
+
 			const user: any = {};
 
 			// todo encrypt password
@@ -150,7 +151,7 @@ export class UserResolver {
 			user.workemail = workemail;
 			user.workphone = workphone;
 			user.size = size;
-			user.password = password;
+			user.password = newPassword;
 
 			// many-to-many relations
 			let _roles: (Role | undefined)[] = [];
@@ -195,11 +196,13 @@ export class UserResolver {
 		@Arg('workemail') workemail: string,
 		@Arg('workphone') workphone: string,
 		@Arg('size') size: string,
+		@Arg('firebaseuid') firebaseuid: string,
+		@Arg('firebaseemail') firebaseemail: string,
 		@Arg('roles', () => [Int]) roles: [number],
 		@Ctx() { valid }: any,
 	): Promise<UserResponse> {
 		// if valid token is passed along
-		if (valid.validated) {
+		if (valid?.validated) {
 			const user: any = await getConnection()
 				.getRepository(User)
 				.findOne(
@@ -222,6 +225,8 @@ export class UserResolver {
 			user.workemail = workemail;
 			user.workphone = workphone;
 			user.size = size;
+			user.firebaseuid = firebaseuid;
+			user.firebaseemail = firebaseemail;
 
 			// updating many-to-many relations
 			let _roles: (Role | undefined)[] = [];
@@ -243,7 +248,6 @@ export class UserResolver {
 						relations: ['roles'],
 					},
 				);
-			console.log('updated', updated);
 			return { user: updated };
 		}
 

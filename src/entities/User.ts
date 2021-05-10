@@ -68,6 +68,20 @@ export class User extends BaseEntity {
 	@Column()
 	size: string;
 
+	@Field(() => String, { nullable: true })
+	@Column({
+		type: 'text',
+		nullable: true,
+	})
+	firebaseemail: string;
+
+	@Field(() => String, { nullable: true })
+	@Column({
+		type: 'text',
+		nullable: true,
+	})
+	firebaseuid: string;
+
 	@Field(() => [Role], { nullable: true })
 	@ManyToMany(() => Role, (role) => role.users)
 	@JoinTable()
@@ -86,13 +100,7 @@ export class User extends BaseEntity {
 
 	@BeforeInsert()
 	async setPassword(password: string) {
-		console.log('/////////////-----------password', password);
-		console.log('/////////////-----------this.password', this.password);
 		const salt = await bcrypt.genSalt();
 		this.password = await bcrypt.hash(password || this.password, salt);
-		console.log(
-			'/////////////-----------this.password efter',
-			this.password,
-		);
 	}
 }
