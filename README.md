@@ -4,11 +4,15 @@ Server for iq96-client
 
 #### needed config files
 
-  **.env:**
+  **index.ts:** if you use two different types of databases on different servers, change logic in this line in main function:
 
-	DATABASE_URL_DEVELOPMENT=
-	DATABASE_URL_PRODUCTION=
-	CORS_ORIGIN=
+	const _type = __prod__ ? 'mysql' : 'postgres';
+
+  **.env:** - in this case two different types of databases
+
+	DATABASE_URL_DEVELOPMENT=postgresql://postgres:postgres@localhost:5432/<db_development>
+	DATABASE_URL_PRODUCTION=mysql://<user>:<password>@localhost:3306/<db_production>
+	CORS_ORIGIN=https://www.example.com
 
 **/src/config/devPages.js:**
 
@@ -36,7 +40,13 @@ Server for iq96-client
 	"client_x509_cert_url": "<client_x509_cert_url>"
 	}
 
+## Start server
+Either:
+
+ - **yarn watch** and **yarn dev**
+  or
+ - **yarn build** and then **yarn start**
 
 TODO:
- - createUser doesnt include Roles when creating new user.
+ - createUser doesn't include Roles when creating new user.
  - Error catching when Creating and updating user.

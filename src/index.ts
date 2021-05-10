@@ -44,7 +44,6 @@ const main = async () => {
 		: process.env.DATABASE_URL_DEVELOPMENT;
 
 	console.log('_type', _type);
-	console.log('_url', _url);
 
 	const conn = await createConnection({
 		type: _type,

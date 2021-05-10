@@ -1,12 +1,15 @@
 import devPages from './devPages';
 
-interface devPages {}
-
 // CORS setup
-const whitelist = [
-	...[process.env.NODE_ENV !== 'production' && devPages],
-	process.env.CORS_ORIGIN,
-];
+let whitelist: string[] = [];
+if (process.env.CORS_ORIGIN) {
+	whitelist.push(process.env.CORS_ORIGIN);
+}
+// adding dev pages if server is not set to production
+if (process.env.NODE_ENV !== 'production') {
+	whitelist = [...whitelist, ...devPages];
+}
+
 export const corsOptions = {
 	origin: function (origin: any, callback: any) {
 		if (whitelist.indexOf(origin) !== -1) {
